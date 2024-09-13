@@ -97,3 +97,4 @@ This project aims to create a highly available and secure container-based servic
    kubectl patch service crypto-price-service -p '{"spec":{"selector":{"version":"blue"}}}' --namespace=default
    kubectl patch service transaction-service -p '{"spec":{"selector":{"version":"blue"}}}' --namespace=default
    kubectl patch service account-service -p '{"spec":{"selector":{"version":"blue"}}}' --namespace=default
+
