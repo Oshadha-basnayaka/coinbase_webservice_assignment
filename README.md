@@ -90,7 +90,7 @@ This project aims to create a highly available and secure container-based servic
     curl -f http://<service-ip>:<port>/accounts
     ```
 
-## Rollback Procedure
+## Rollback  Procedure
 
 1. **Switch Traffic to Blue Deployment**:
    ```bash
@@ -98,3 +98,4 @@ This project aims to create a highly available and secure container-based servic
    kubectl patch service transaction-service -p '{"spec":{"selector":{"version":"blue"}}}' --namespace=default
    kubectl patch service account-service -p '{"spec":{"selector":{"version":"blue"}}}' --namespace=default
 
+ 
