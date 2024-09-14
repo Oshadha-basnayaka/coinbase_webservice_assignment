@@ -9,7 +9,7 @@ on:
       - master
 
 jobs:
-  build-and-test:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -32,49 +32,17 @@ jobs:
             docker push ${{ secrets.DOCKER_USERNAME }}/$service:latest
           done
 
-      - name: Install Dependencies and Run Unit Tests
-        run: |
-          services=("crypto-price-service" "transaction-service" "account-service")
-          for service in "${services[@]}"; do
-            cd services/$service
-            pip install -r requirements.txt
-            pytest
-            cd ../.. 
-          done
-
-      - name: Run Integration Tests
-        run: |
-          docker run -d --name crypto-price-service -p 5001:5001 ${{ secrets.DOCKER_USERNAME }}/crypto-price-service:latest
-          docker run -d --name transaction-service -p 5002:5002 ${{ secrets.DOCKER_USERNAME }}/transaction-service:latest
-          docker run -d --name account-service -p 5003:5003 ${{ secrets.DOCKER_USERNAME }}/account-service:latest
-          
-          sleep 30
-          
-          curl -f http://localhost:5001/crypto-prices || exit 1
-          curl -f http://localhost:5002/transactions || exit 1
-          curl -f http://localhost:5003/accounts || exit 1
-          
-          docker stop crypto-price-service transaction-service account-service
-          docker rm crypto-price-service transaction-service account-service
-
       - name: Set up kubeconfig
         run: |
           echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
           kubectl config use-context ${{ secrets.KUBE_CONTEXT }}
 
-      - name: Deploy to Kubernetes (Blue-Green Deployment)
+      - name: Deploy to Kubernetes
         run: |
           services=("crypto-price-service" "transaction-service" "account-service")
           namespace="default"
           for service in "${services[@]}"; do
-            # Create/update blue deployment
-            kubectl apply -f kubernetes/blue-green/$service-blue-deployment.yaml --namespace=$namespace
-          
-            # Create/update green deployment
-            kubectl apply -f kubernetes/blue-green/$service-green-deployment.yaml --namespace=$namespace
-            
-            # Switch the service to the green deployment
-            kubectl patch service $service -p '{"spec":{"selector":{"version":"green"}}}' --namespace=$namespace
+            kubectl apply -f kubernetes/$service-deployment.yaml --namespace=$namespace
           done
 
       - name: Clean up

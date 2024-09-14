@@ -7,6 +7,8 @@ accounts = []
 @app.route('/accounts', methods=['GET'])
 def get_accounts():
     return jsonify(accounts), 200
+    # return "hi", 200
+
 
 @app.route('/accounts', methods=['POST'])
 def create_account():
